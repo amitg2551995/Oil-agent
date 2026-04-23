@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="נפט AI">
+<title>נפט AI</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #090c14;
+    color: #e8eaf0;
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+  @keyframes spin { to{transform:rotate(360deg)} }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+.badge {
+display: inline-flex; align-items: center; gap: 8px;
+background: rgba(61,143,255,0.1); border: 1px solid rgba(61,143,255,0.2);
+border-radius: 8px; padding: 5px 14px; margin-bottom: 14px;
+}
+.dot { width: 7px; height: 7px; border-radius: 50%; background: #3d8fff; animation: pulse 2s infinite; }
+.badge-text { font-size: 10px; color: #3d8fff; letter-spacing: 2px; }
+h1 { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+h1 span { color: #3d8fff; }
+.subtitle { color: #5a6378; font-size: 12px; margin-bottom: 24px; }
+
+.upload-zone {
+border: 2px dashed #1e2535; border-radius: 12px;
+padding: 32px; text-align: center; cursor: pointer;
+background: #0d1117; margin-bottom: 12px; transition: border-color 0.2s;
+}
+.upload-zone.has-image { padding: 12px; }
+.upload-zone:hover, .upload-zone.drag { border-color: #3d8fff; }
+.upload-zone img { max-width: 100%; max-height: 260px; border-radius: 8px; }
+.upload-icon { font-size: 32px; margin-bottom: 10px; }
+.upload-title { color: #3d8fff; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.upload-sub { color: #5a6378; font-size: 11px; }
+
+.btn {
+width: 100%; padding: 14px; border-radius: 10px;
+background: #1a5cbf; color: #fff; border: none;
+cursor: pointer; font-size: 15px; font-weight: 600;
+transition: all 0.2s; margin-bottom: 16px; display: flex;
+align-items: center; justify-content: center; gap: 8px;
+}
+.btn:disabled { background: #1e2535; color: #5a6378; cursor: not-allowed; }
+.spinner {
+width: 14px; height: 14px; border: 2px solid #3d8fff;
+border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+
+.error {
+background: rgba(255,77,109,0.1); border: 1px solid rgba(255,77,109,0.3);
+border-radius: 10px; padding: 14px; color: #ff4d6d;
+font-size: 13px; margin-bottom: 16px; line-height: 1.6;
+}
+
+.result { animation: fadeIn 0.4s ease forwards; }
+.rec-card {
+border-radius: 12px; padding: 20px;
+margin-bottom: 14px; text-align: center;
+}
+.rec-emoji { font-size: 32px; margin-bottom: 8px; }
+.rec-label { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
+
+.analysis-card {
+background: #0d1117; border: 1px solid #1e2535;
+border-radius: 12px; padding: 16px; margin-bottom: 14px;
+}
+.card-title { font-size: 10px; color: #5a6378; letter-spacing: 1px; margin-bottom: 12px; }
+.analysis-text {
+font-size: 13px; color: #9aa0b4; line-height: 1.9;
+white-space: pre-wrap; text-align: right;
+}
+.footer { text-align: center; color: #2a3044; font-size: 10px; margin-top: 14px; }
+
+/* API Key section */
+.apikey-section {
+background: #0d1117; border: 1px solid #1e2535;
+border-radius: 12px; padding: 16px; margin-bottom: 16px;
+}
+.apikey-label { font-size: 11px; color: #5a6378; margin-bottom: 8px; }
+.apikey-input {
+width: 100%; background: #090c14; border: 1px solid #2a3044;
+border-radius: 8px; padding: 10px 12px; color: #e8eaf0;
+font-size: 12px; font-family: ‘IBM Plex Mono’; outline: none;
+}
+.apikey-input:focus { border-color: #3d8fff; }
+.apikey-hint { font-size: 10px; color: #3a4055; margin-top: 6px; }
+a { color: #3d8fff; }
+</style>
+
+</head>
+<body>
+
+<div style="text-align:center; margin-bottom: 28px;">
+  <div class="badge">
+    <div class="dot"></div>
+    <span class="badge-text">OIL ANALYSIS AGENT</span>
+  </div>
+  <h1>🛢️ נפט <span>AI</span></h1>
+  <p class="subtitle">שלח תמונת גרף לניתוח טכני מיידי</p>
+</div>
+
+<!-- API Key -->
+
+<div class="apikey-section">
+  <div class="apikey-label">🔑 מפתח Anthropic API</div>
+  <input class="apikey-input" type="password" id="apiKey" placeholder="sk-ant-..." />
+  <div class="apikey-hint">מפתח נשמר רק במכשיר שלך. קבל מפתח בחינם: <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></div>
+</div>
+
+<!-- Upload -->
+
+<div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+  <input type="file" id="fileInput" accept="image/*" style="display:none">
+  <div id="uploadContent">
+    <div class="upload-icon">📊</div>
+    <div class="upload-title">גרור תמונה לכאן</div>
+    <div class="upload-sub">PNG, JPG, WEBP</div>
+  </div>
+</div>
+
+<button class="btn" id="analyzeBtn" onclick="analyze()" style="display:none">
+  🔍 נתח גרף
+</button>
+
+<div id="error" class="error" style="display:none"></div>
+<div id="result" class="result" style="display:none"></div>
+
+<script>
+let imageBase64 = null;
+let mediaType = 'image/png';
+
+const zone = document.getElementById('uploadZone');
+const btn = document.getElementById('analyzeBtn');
+
+// Drag and drop
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
+
+document.getElementById('fileInput').addEventListener('change', e => handleFile(e.target.files[0]));
+
+function handleFile(file) {
+  if (!file || !file.type.startsWith('image/')) return;
+  const supported = ['image/jpeg','image/png','image/gif','image/webp'];
+  mediaType = supported.includes(file.type) ? file.type : 'image/png';
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    imageBase64 = e.target.result.split(',')[1];
+    zone.classList.add('has-image');
+    document.getElementById('uploadContent').innerHTML = `
+      <img src="${e.target.result}" alt="chart">
+      <p style="color:#5a6378;font-size:11px;margin-top:6px;">לחץ להחלפת תמונה</p>
+    `;
+    btn.style.display = 'flex';
+    document.getElementById('result').style.display = 'none';
+    document.getElementById('error').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analyze() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  if (!apiKey) { showError('הכנס מפתח API קודם'); return; }
+  if (!imageBase64) { showError('העלה תמונה קודם'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> מנתח...';
+  document.getElementById('error').style.display = 'none';
+  document.getElementById('result').style.display = 'none';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-allow-browser': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-opus-4-5',
+        max_tokens: 1000,
+        messages: [{
+          role: 'user',
+          content: [
+            { type: 'image', source: { type: 'base64', media_type: mediaType, data: imageBase64 } },
+            { type: 'text', text: `אתה אנליסט טכני מומחה לנפט. נתח את גרף הנפט הזה.
+ענה בעברית בפורמט הבא:
+
+המלצה: LONG / SHORT / WAIT
+ביטחון: X%
+מחיר נוכחי: X.XX
+RSI: XX
+מגמה: עולה/יורד/צדדי
+כניסה: X.XX
+סטופ לוס: X.XX
+טייק פרופיט: X.XX
+סיבות:
+• סיבה 1
+• סיבה 2
+• סיבה 3
+סיכום: משפט אחד קצר` }
+          ]
+        }]
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || `שגיאה ${res.status}`);
+
+    const text = data.content?.[0]?.text || '';
+    if (!text) throw new Error('תשובה ריקה');
+
+    showResult(text);
+  } catch(e) {
+    showError(e.message);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '🔍 נתח גרף';
+}
+
+function showError(msg) {
+  const el = document.getElementById('error');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function showResult(text) {
+  const isLong = text.includes('LONG');
+  const isShort = text.includes('SHORT');
+  const color = isLong ? '#00ff9d' : isShort ? '#ff4d6d' : '#ffd166';
+  const bgColor = isLong ? 'rgba(0,255,157,0.06)' : isShort ? 'rgba(255,77,109,0.06)' : 'rgba(255,209,102,0.06)';
+  const emoji = isLong ? '🟢' : isShort ? '🔴' : '⏳';
+  const label = isLong ? 'כנס לונג' : isShort ? 'כנס שורט' : 'המתן';
+
+  document.getElementById('result').innerHTML = `
+    <div class="rec-card" style="background:${bgColor};border:1px solid ${color}33;">
+      <div class="rec-emoji">${emoji}</div>
+      <div class="rec-label" style="color:${color};">${label}</div>
+    </div>
+    <div class="analysis-card">
+      <div class="card-title">ניתוח מלא</div>
+      <div class="analysis-text">${text.replace(/</g,'&lt;')}</div>
+    </div>
+    <div class="footer">⚠️ ניתוח טכני בלבד – לא ייעוץ פיננסי</div>
+  `;
+  document.getElementById('result').style.display = 'block';
+}
+
+// Save API key to localStorage
+document.getElementById('apiKey').addEventListener('change', e => {
+  localStorage.setItem('oilAgentKey', e.target.value);
+});
+const saved = localStorage.getItem('oilAgentKey');
+if (saved) document.getElementById('apiKey').value = saved;
+</script>
+
+</body>
+</html>
